@@ -80,7 +80,12 @@ class SudokuDialog(QtWidgets.QDialog):
                 main_layout.addWidget(hline)
         self.check_btn = QtWidgets.QPushButton("Check Solution")
         self.check_btn.clicked.connect(self.checkSolution)
-        main_layout.addWidget(self.check_btn)
+        self.hint_btn = QtWidgets.QPushButton("Get Hint")
+        self.hint_btn.clicked.connect(self.getHint)
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.check_btn)
+        button_layout.addWidget(self.hint_btn)
+        main_layout.addLayout(button_layout)
         self.setLayout(main_layout)
 
     def fillBoard(self, puzzle, solution):
@@ -166,3 +171,28 @@ class SudokuDialog(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "Check", "There are mistakes.")
         else:
             QtWidgets.QMessageBox.information(self, "Check", "Solution correct!")
+
+    def getHint(self):
+        # Find empty or incorrect cells
+        hint_candidates = []
+        for row in range(9):
+            for col in range(9):
+                cell = self.cells[(row, col)]
+                try:
+                    user_val = int(cell.text())
+                except ValueError:
+                    user_val = 0
+                if user_val != self.solution[row][col]:
+                    hint_candidates.append((row, col))
+        
+        if hint_candidates:
+            # Choose a random cell to give hint for
+            row, col = random.choice(hint_candidates)
+            cell = self.cells[(row, col)]
+            correct_value = self.solution[row][col]
+            cell.setText(str(correct_value))
+            cell.setReadOnly(True)
+            base_style = self.cellStyles[(row, col)]
+            cell.setStyleSheet(base_style + " color: green;")
+        else:
+            QtWidgets.QMessageBox.information(self, "Hint", "No hints needed - puzzle is complete!")            
